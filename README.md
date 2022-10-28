@@ -33,13 +33,41 @@ ax.legend()
 savefig_metadata_dict(fig, params, "./assets/encoded") # save the metadata IN the figure
 plt.close()
 ```
-Original                   |  Original + Metadata
+Original                   |  Original + Parameters
 :-------------------------:|:-------------------------:
-![](assets/original.png)   |  ![](assets/encoded-272.png)
+![](assets/original.png)   |  ![](assets/encode_params-272.png)
 
-# Step 2: retrieve data
+## Step 2: retrieve parameters
 ```python
 # retrieve information
 retrieve_metadata("./assets/encoded-272.png")
 > {"n": 500, "seed": 4, "sig": 1000}
+```
+
+# Example: save code
+Even low quality images are quite roomy! Let's store the whole code of the tests
+## Step 1
+```python
+...
+with open(__file__, "r") as f:
+    code = f.read()
+savefig_metadata(fig, code, "./assets/en_code") # save the metadata IN the figure
+...
+```
+
+Original                   |  Original + Code
+:-------------------------:|:-------------------------:
+![](assets/original.png)   |  ![](assets/en_code-9504.png)
+
+## Step 2: retrieve code
+```python
+# retrieve information
+retrieve_metadata("./assets/en_code-9504.png")
+> import json
+> import unittest
+> 
+> import matplotlib.pyplot as plt
+> import numpy as np
+> ...
+
 ```

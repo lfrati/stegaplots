@@ -46,7 +46,7 @@ retrieve_metadata("./assets/encoded-272.png")
 
 # Example: save code
 Even low quality images are quite roomy! Let's store the whole code of the tests
-## Step 1
+## Step 1: make plot + store code
 ```python
 ...
 with open(__file__, "r") as f:

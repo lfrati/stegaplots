@@ -32,8 +32,8 @@ ax.set_ylabel("stonks")
 ax.legend()
 savefig_metadata( # save the metadata IN the figure
     fig,
-    msg=cls.msg,
-    params=cls.params,
+    msg="Small but important note",
+    params=params,
     code=[__file__, "stegano.py"],
     title="./assets/encoded",
 )

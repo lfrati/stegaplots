@@ -1,12 +1,25 @@
+import argparse
 import base64
 import io
 import json
+from pathlib import Path
 import zlib
 
 from PIL import Image
 from matplotlib.figure import Figure
 import numpy as np
-from pathlib import Path
+
+
+class bcolors:
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
 
 def to_pil(fig: Figure, dpi: int = 100) -> Image.Image:
@@ -67,9 +80,8 @@ def retrieve(img: Image.Image, N: int) -> np.ndarray:
 
 
 def encode(img: Image.Image, msg: str) -> tuple[Image.Image, int]:
-    if len(msg) > 400:
-        compressed_bytes = zlib.compress(msg.encode())
-        msg = base64.b64encode(compressed_bytes).decode("utf-8")
+    compressed_bytes = zlib.compress(msg.encode())
+    msg = base64.b64encode(compressed_bytes).decode("utf-8")
     bin_msg = msg2bin(msg)
     return hide(img, bin_msg)
 
@@ -79,9 +91,8 @@ def decode(img: Image.Image, N: int) -> str:
     rgb = pix[:, :, :3]
     bin_msg = retrieve(rgb, N)
     msg = bin2msg(bin_msg)
-    if N > 400:
-        compressed_bytes = base64.b64decode(msg)
-        msg = zlib.decompress(compressed_bytes).decode("utf-8")
+    compressed_bytes = base64.b64decode(msg)
+    msg = zlib.decompress(compressed_bytes).decode("utf-8")
     return msg
 
 
@@ -96,19 +107,39 @@ def decode_dict(img: Image.Image, N: int) -> dict:
     return d
 
 
-def savefig_metadata(fig: Figure, msg: str, title: str, dpi: int = 100) -> None:
+def savefig_metadata(
+    fig: Figure, msg: str, params: dict, code: list[str], title: str, dpi: int = 100
+) -> None:
     img = to_pil(fig, dpi=dpi)
-    new_img, N = encode(img, msg)
+    if code is None:
+        srcs = {}
+    else:
+        srcs = {file: Path(file).read_text() for file in code}
+    if params is None:
+        params = {}
+    info = {"msg": msg, "params": params, "code": srcs}
+    new_img, N = encode_dict(img, info)
     new_img.save(f"{title}-{N}.png")
 
 
-def savefig_metadata_dict(fig: Figure, msg: dict, title: str, dpi: int = 100) -> None:
-    img = to_pil(fig, dpi=dpi)
-    new_img, N = encode_dict(img, msg)
-    new_img.save(f"{title}-{N}.png")
-
-
-def retrieve_metadata(path: str) -> None:
+def retrieve_metadata(path: str) -> dict:
     img = Image.open(path)
     N = int(Path(path).stem.split("-")[-1])
-    print(decode(img, N))
+    return decode_dict(img, N)
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input", type=str, help="Path to image to decode")
+    args = parser.parse_args()
+    info = retrieve_metadata(args.input)
+    for name, src in info["code"].items():
+        print(
+            f"{bcolors.FAIL}>>> {name} <<<{bcolors.ENDC}",
+        )
+        print(src)
+    print(bcolors.OKBLUE + "msg:", info["msg"])
+    print(bcolors.ENDC)
+    print(bcolors.WARNING + "params:", json.dumps(info["params"]))
+    print(bcolors.ENDC)

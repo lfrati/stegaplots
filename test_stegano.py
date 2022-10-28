@@ -17,7 +17,6 @@ from stegano import (
     retrieve,
     to_pil,
     savefig_metadata,
-    savefig_metadata_dict,
 )
 
 
@@ -27,9 +26,7 @@ class SteganoTests(unittest.TestCase):
         super().setUpClass()
 
         cls.params = {"seed": 4, "n": 500, "sig": 1000}
-
-        with open(__file__, "r") as f:
-            cls.msg = f.read()
+        cls.msg = "Small but important note."
 
         np.random.seed(cls.params["seed"])
         xs = np.linspace(0, 100, cls.params["n"])
@@ -46,8 +43,13 @@ class SteganoTests(unittest.TestCase):
         ax.legend()
         cls.img = to_pil(fig)  # to run tests
         fig.savefig("./assets/original.png")  # to compare
-        savefig_metadata_dict(fig, cls.params, "./assets/encode_params")
-        savefig_metadata(fig, cls.msg, "./assets/en_code")
+        savefig_metadata(
+            fig,
+            msg=cls.msg,
+            params=cls.params,
+            code=[__file__, "stegano.py"],
+            title="./assets/encoded",
+        )
         plt.close()
 
     def test_binmsg(self):

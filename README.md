@@ -9,7 +9,7 @@ What if you would like to store the script itself along with that image?
 Why not use [steganography](https://en.wikipedia.org/wiki/Steganography) to store all the data you want *INSIDE* the plot?
 
 
-# Example : Save config
+# Example
 ## Step 1: make plot + store data
 ```python
 # experiment configuration
@@ -30,44 +30,42 @@ ax.set_title("A nice plot")
 ax.set_xlabel("time or something")
 ax.set_ylabel("stonks")
 ax.legend()
-savefig_metadata_dict(fig, params, "./assets/encoded") # save the metadata IN the figure
+savefig_metadata( # save the metadata IN the figure
+    fig,
+    msg=cls.msg,
+    params=cls.params,
+    code=[__file__, "stegano.py"],
+    title="./assets/encoded",
+)
 plt.close()
 ```
-Original                   |  Original + Parameters
+Original                   |  Original + Data
 :-------------------------:|:-------------------------:
-![](assets/original.png)   |  ![](assets/encode_params-272.png)
+![](assets/original.png)   |  ![](assets/encoded-21184.png)
 
 ## Step 2: retrieve parameters
 ```python
 # retrieve information
-retrieve_metadata("./assets/encoded-272.png")
-> {"n": 500, "seed": 4, "sig": 1000}
+retrieve_metadata("./assets/encoded-21184.png")
+> {
+>   "code" : {...},
+>    "msg" : "Small but important note.",
+> "params" : {"n": 500, "seed": 4, "sig": 1000}
+> }
 ```
 
-# Example: save code
-Even low quality images are quite roomy! Let's store the whole code of the tests
-## Step 1: make plot + store code
-```python
-...
-with open(__file__, "r") as f:
-    code = f.read()
-savefig_metadata(fig, code, "./assets/en_code") # save the metadata IN the figure
-...
-```
+If you just want to check an image you can use:
 
-Original                   |  Original + Code
-:-------------------------:|:-------------------------:
-![](assets/original.png)   |  ![](assets/en_code-9504.png)
-
-## Step 2: retrieve code
-```python
-# retrieve information
-retrieve_metadata("./assets/en_code-9504.png")
-> import json
-> import unittest
-> 
-> import matplotlib.pyplot as plt
-> import numpy as np
-> ...
-
+```bash
+$ python stegano.py assets/encoded-21184.png
+# >>> stegano.py <<<
+# import argparse
+# import base64
+# import io
+# ...
+# 
+# msg: Small but important note.
+# 
+# params: {"n": 500, "seed": 4, "sig": 1000}
+# 
 ```

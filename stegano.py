@@ -1,9 +1,12 @@
+import base64
 import io
 import json
+import zlib
 
 from PIL import Image
 from matplotlib.figure import Figure
 import numpy as np
+from pathlib import Path
 
 
 def to_pil(fig: Figure, dpi: int = 100) -> Image.Image:
@@ -93,23 +96,19 @@ def decode_dict(img: Image.Image, N: int) -> dict:
     return d
 
 
-# def savefig_metadata(fig: Figure, msg: str):
-#     img = to_pil(fig)
-#     new_img, N = encode(img, msg)
+def savefig_metadata(fig: Figure, msg: str, title: str, dpi: int = 100) -> None:
+    img = to_pil(fig, dpi=dpi)
+    new_img, N = encode(img, msg)
+    new_img.save(f"{title}-{N}.png")
 
 
-#%%
+def savefig_metadata_dict(fig: Figure, msg: dict, title: str, dpi: int = 100) -> None:
+    img = to_pil(fig, dpi=dpi)
+    new_img, N = encode_dict(img, msg)
+    new_img.save(f"{title}-{N}.png")
 
-import zlib, base64
 
-with open("stegano.py", "r") as f:
-    msg = f.read()
-
-msg = msg[:400]
-compressed_bytes = zlib.compress(msg.encode())
-compressed_msg = base64.b64encode(compressed_bytes).decode("utf-8")
-print(len(msg), len(compressed_msg))
-# print(msg, compressed_msg)
-
-b = base64.b64decode(compressed_msg)
-zlib.decompress(b).decode("utf-8")
+def retrieve_metadata(path: str) -> None:
+    img = Image.open(path)
+    N = int(Path(path).stem.split("-")[-1])
+    print(decode(img, N))

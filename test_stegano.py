@@ -16,49 +16,56 @@ from stegano import (
     msg2bin,
     retrieve,
     to_pil,
+    savefig_metadata_dict,
 )
 
 
-class TestStringMethods(unittest.TestCase):
-    def setUp(self):
+class SteganoTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.params = {"seed": 4, "n": 500, "sig": 1000}
+
+        with open(__file__, "r") as f:
+            cls.msg = f.read()
+
+        np.random.seed(cls.params["seed"])
+        xs = np.linspace(0, 100, cls.params["n"])
+        ys = xs**2
+        upper = ys + np.sort(np.abs(np.random.randn(*ys.shape))) * cls.params["sig"]
+        lower = ys - np.sort(np.abs(np.random.randn(*ys.shape))) * cls.params["sig"]
 
         fig, ax = plt.subplots()
-        xs = np.linspace(0, 100, 500)
-        ys = xs**2
-        upper = ys + np.sort(np.abs(np.random.randn(*ys.shape))) * 1000
-        lower = ys - np.sort(np.abs(np.random.randn(*ys.shape))) * 1000
         ax.fill_between(xs, upper, lower, alpha=0.3, label="CI")
         ax.plot(xs, ys, color="red", label="mean")
         ax.set_title("A nice plot")
         ax.set_xlabel("time or something")
         ax.set_ylabel("stonks")
         ax.legend()
-        self.img = to_pil(fig)
+        cls.img = to_pil(fig)  # to run tests
+        fig.savefig("./assets/original.png")  # to compare
+        savefig_metadata_dict(fig, cls.params, "./assets/encoded")
         plt.close()
 
-        with open(__file__, "r") as f:
-            self.msg = f.read()
-
-        self.params = {"seed": 4, "n": 100, "its": 10_000}
-
     def test_binmsg(self):
-        bin_msg = msg2bin(self.msg)
+        bin_msg = msg2bin(SteganoTests.msg)
         retrieved = bin2msg(bin_msg)
-        self.assertEqual(retrieved, self.msg)
+        self.assertEqual(retrieved, SteganoTests.msg)
 
     def test_hideretrieve(self):
-        bin_msg = msg2bin(self.msg)
-        new_img, N = hide(self.img, bin_msg)
+        bin_msg = msg2bin(SteganoTests.msg)
+        new_img, N = hide(SteganoTests.img, bin_msg)
         retrieved = retrieve(new_img, N)
         self.assertTrue(np.array_equal(retrieved, bin_msg))
 
     def test_encodedecode(self):
-        new_im, N = encode(self.img, self.msg)
+        new_im, N = encode(SteganoTests.img, SteganoTests.msg)
         retrieved_msg = decode(new_im, N)
-        self.assertEqual(retrieved_msg, self.msg)
+        self.assertEqual(retrieved_msg, SteganoTests.msg)
 
     def test_dict(self):
-        new_img, N = encode_dict(self.img, self.params)
+        new_img, N = encode_dict(SteganoTests.img, SteganoTests.params)
         new_params = decode_dict(new_img, N)
         target = json.dumps(self.params, sort_keys=True)
         retrieved = json.dumps(new_params, sort_keys=True)

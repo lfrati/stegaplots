@@ -16,6 +16,7 @@ from stegano import (
     msg2bin,
     retrieve,
     to_pil,
+    savefig_metadata,
     savefig_metadata_dict,
 )
 
@@ -45,7 +46,8 @@ class SteganoTests(unittest.TestCase):
         ax.legend()
         cls.img = to_pil(fig)  # to run tests
         fig.savefig("./assets/original.png")  # to compare
-        savefig_metadata_dict(fig, cls.params, "./assets/encoded")
+        savefig_metadata_dict(fig, cls.params, "./assets/encode_params")
+        savefig_metadata(fig, cls.msg, "./assets/en_code")
         plt.close()
 
     def test_binmsg(self):

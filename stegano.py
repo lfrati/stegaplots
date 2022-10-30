@@ -42,10 +42,7 @@ def bin2msg(bin_msg: np.ndarray) -> str:
 
 
 def encode_bit(v, desired):
-    # 0 -> even
-    # 1 -> odd
-    even = v % 2 == 0
-    if (desired == 0 and not even) or (desired == 1 and even):
+    if v % 2 != desired:
         if v < 255:
             return v + 1
         return v - 1

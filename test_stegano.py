@@ -42,14 +42,14 @@ class SteganoTests(unittest.TestCase):
         ax.set_ylabel("stonks")
         ax.legend()
         cls.img = to_pil(fig)  # to run tests
-        fig.savefig("./assets/original.png")  # to compare
-        savefig_metadata(
-            fig,
-            msg=cls.msg,
-            params=cls.params,
-            code=[__file__, "stegano.py"],
-            title="./assets/encoded",
-        )
+        # fig.savefig("./assets/original.png")  # to compare
+        # savefig_metadata(
+        #     fig,
+        #     msg=cls.msg,
+        #     params=cls.params,
+        #     code=[__file__, "stegano.py"],
+        #     title="./assets/encoded",
+        # )
         plt.close()
 
     def test_binmsg(self):

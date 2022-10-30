@@ -79,9 +79,12 @@ $ python stegano.py assets/encoded-21184.png
 Let's say you want to store "Hello world!" in your plot.
 ## 1. plot to image
 ```python
+fig, ax = plt.subplots()
+ ... # plotting stuff
 img_buf = io.BytesIO()
-fig.savefig(img_buf, format="png", dpi=dpi)
+fig.savefig(img_buf, format="png", dpi=100)
 img = Image.open(img_buf)
+plt.close()
 ```
 ## 2. compress the message
 ```python

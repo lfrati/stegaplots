@@ -63,6 +63,13 @@ class SteganoTests(unittest.TestCase):
         retrieved = retrieve(new_img, N)
         self.assertTrue(np.array_equal(retrieved, bin_msg))
 
+    def test_hide_too_big(self):
+        np_img = np.array(SteganoTests.img)
+        avail_bits = np_img.size
+        bin_msg = np.zeros(avail_bits + 1)
+        with self.assertRaises(AssertionError):
+            _ = hide(SteganoTests.img, bin_msg)
+
     def test_encodedecode(self):
         new_im, N = encode(SteganoTests.img, SteganoTests.msg)
         retrieved_msg = decode(new_im, N)

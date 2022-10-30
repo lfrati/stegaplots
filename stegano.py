@@ -58,23 +58,22 @@ def decode_bit(v):
 
 def hide(img: Image.Image, bin_msg: np.ndarray) -> tuple[Image.Image, int]:
     pix = np.array(img)
-    rgb = pix[:, :, :3]
-    flat_rgb = rgb.flatten()
+    assert pix.size >= len(
+        bin_msg
+    ), f"Image size insufficient: {pix.shape} = {pix.size} bits < {len(bin_msg)} required"
+    flat_pix = pix.ravel()
     for i, desired in enumerate(bin_msg):
-        v = flat_rgb[i]
-        flat_rgb[i] = encode_bit(v, desired)
-    new_rgb = flat_rgb.reshape(rgb.shape)
-    pix[:, :, :3] = new_rgb
+        v = flat_pix[i]
+        flat_pix[i] = encode_bit(v, desired)
     return Image.fromarray(pix), len(bin_msg)
 
 
 def retrieve(img: Image.Image, N: int) -> np.ndarray:
     pix = np.array(img)
-    rgb = pix[:, :, :3]
-    flat_rgb = rgb.flatten()
+    flat_pix = pix.ravel()
     bin_msg = np.zeros(N, dtype=int)
     for i in range(N):
-        v = flat_rgb[i]
+        v = flat_pix[i]
         bin_msg[i] = decode_bit(v)
     return bin_msg
 
@@ -87,9 +86,7 @@ def encode(img: Image.Image, msg: str) -> tuple[Image.Image, int]:
 
 
 def decode(img: Image.Image, N: int) -> str:
-    pix = np.array(img)
-    rgb = pix[:, :, :3]
-    bin_msg = retrieve(rgb, N)
+    bin_msg = retrieve(img, N)
     msg = bin2msg(bin_msg)
     compressed_bytes = base64.b64decode(msg)
     msg = zlib.decompress(compressed_bytes).decode("utf-8")
@@ -127,6 +124,11 @@ def retrieve_metadata(path: str) -> dict:
     N = int(Path(path).stem.split("-")[-1])
     return decode_dict(img, N)
 
+
+# img = Image.open("./assets/encoded-21184.png")
+
+
+#%%
 
 if __name__ == "__main__":
 

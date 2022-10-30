@@ -1,4 +1,9 @@
-# stegaplots
+<p align="center">
+  <img width="400" src="https://raw.githubusercontent.com/lfrati/stegaplots/main/assets/stegaplot.png">
+</p>
+
+---
+
 Making plots while experimenting with an idea is very fun. Actually too much fun. 
 
 Pretty soon you'll find yourself with a folder full of pretty plots, and no idea which set of parameters generated them.

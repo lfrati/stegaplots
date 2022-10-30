@@ -39,16 +39,21 @@ savefig_metadata( # save the metadata IN the figure
 )
 plt.close()
 ```
+A small (640,480,4) plot provides 1228800 bits of storage which is 153600 characters (8 bits per char).
+For example, ```stegano.py``` is 3738 chars so we can store up to 40 copies of it!
 Original                   |  Original + Data
 :-------------------------:|:-------------------------:
-![](assets/original.png)   |  ![](assets/encoded-21184.png)
+![](assets/original.png)   |  ![](assets/encoded-24864.png)
 
 ## Step 2: retrieve parameters
 ```python
 # retrieve information
-retrieve_metadata("./assets/encoded-21184.png")
+retrieve_metadata("./assets/encoded-24864.png")
 > {
->   "code" : {...},
+>   "code" : {"stegano.py" : "import argparse
+>                             import base64
+>                             ... 
+>             },
 >    "msg" : "Small but important note.",
 > "params" : {"n": 500, "seed": 4, "sig": 1000}
 > }

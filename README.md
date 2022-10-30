@@ -74,3 +74,45 @@ $ python stegano.py assets/encoded-21184.png
 # params: {"n": 500, "seed": 4, "sig": 1000}
 # 
 ```
+
+# How does it work?
+Let's say you want to store "Hello world!" in your plot.
+## 1. plot to image
+```python
+img_buf = io.BytesIO()
+fig.savefig(img_buf, format="png", dpi=dpi)
+img = Image.open(img_buf)
+```
+## 2. compress the message
+```python
+msg = "Hello world!"
+compressed_bytes = zlib.compress(msg.encode()) 
+# b'x\x9c\xf3H\xcd\xc9\xc9W(\xcf/\xcaIQ\x04\x00\x1d\t\x04^'
+compressed_message = base64.b64encode(compressed_bytes).decode("utf-8")
+# eJzzSM3JyVcozy/KSVEEAB0JBF4=
+```
+For a very short message the compressed version could end up being longer, but that's not the case anymore after ~ 300 characters.
+
+## 3. convert to binary
+```python
+bits = msg2bin(compress_msg) # eJzzSM3JyVcozy/KSVEEAB0JBF4=
+# [0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1 ...
+# [0, 1, 1, 0, 0, 1, 0, 1][0, 1, 0, 0, 1, 0, 1, 0][0, 1, 1, 1, 1, 0, 1, 0][0, 1, 1 ...
+#        e                       J                       z                       z ...
+```
+These bits are then encoded in the least significan bit of each pixel information i.e. 0 = even, 1 = odd .
+```python
+def encode_bit(v, desired):
+    if v % 2 != desired:
+        if v < 255:
+            return v + 1
+        return v - 1
+    return v
+
+pixels = np.array(img)
+flat = pix.ravel()
+for i, desired in enumerate(bits):
+    flat[i] = encode_bit(flat[i], desired)
+new_image = Image.fromarray(pix)
+```
+And voila, the message has been added to the image 😀

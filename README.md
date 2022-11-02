@@ -2,7 +2,7 @@
   <img width="400" src="https://raw.githubusercontent.com/lfrati/stegaplots/main/assets/stegaplot.png">
 </p>
 
-# StegaPlots
+# StegaPlots  ![CI](https://github.com/lfrati/stegaplots/actions/workflows/test.yml/badge.svg)
 
 Making plots while experimenting with an idea is very fun. Actually too much fun. 
 

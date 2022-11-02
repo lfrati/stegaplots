@@ -48,12 +48,12 @@ A small (640,480,4) plot provides 1228800 bits of storage which is 153600 charac
 For example, ```stegano.py``` is 3738 chars so we can store up to 40 copies of it!
 Original                   |  Original + Data
 :-------------------------:|:-------------------------:
-![](assets/original.png)   |  ![](assets/encoded-24864.png)
+![](assets/original.png)   |  ![](assets/encoded.png)
 
 ## Step 2: retrieve parameters
 ```python
 # retrieve information
-retrieve_metadata("./assets/encoded-24864.png")
+retrieve_metadata("./assets/encoded.png")
 > {
 >   "code" : {"stegano.py" : "import argparse
 >                             import base64
@@ -67,7 +67,7 @@ retrieve_metadata("./assets/encoded-24864.png")
 If you just want to check an image you can use:
 
 ```bash
-$ python stegano.py assets/encoded-21184.png
+$ python stegano.py assets/encoded.png
 # >>> stegano.py <<<
 # import argparse
 # import base64
@@ -124,3 +124,11 @@ for i, desired in enumerate(bits):
 new_image = Image.fromarray(pix)
 ```
 And voila, the message has been added to the image 😀
+
+How does the decoding process work? Basically the same steps in reverse. The only difference is that we need to know how many bits to decode.
+
+To find out that we used a fixed size header:
+```
+"stegaplots-0.0.1-25664                                           " = 64 chars 
+   check    ver.  size  (a lot of spaces but too much > too little)
+```

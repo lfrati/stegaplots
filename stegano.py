@@ -24,6 +24,7 @@ class bcolors:
 
 HEADERLEN = 64
 HEADERSIZE = HEADERLEN * 8
+VERSION = "0.0.1"
 
 
 def to_pil(fig: Figure, dpi: int = 100) -> Image.Image:
@@ -58,7 +59,7 @@ def decode_bit(v):
 
 
 def hide(img: Image.Image, bin_msg: np.ndarray) -> Image.Image:
-    header = f"stegaplots-0.0.1-{len(bin_msg)}"
+    header = f"stegaplots-{VERSION}-{len(bin_msg)}"
     header = header + " " * (HEADERLEN - len(header))
     bin_header = msg2bin(header)
     bin_msg = np.concatenate([bin_header, bin_msg])
@@ -81,7 +82,7 @@ def retrieve(img: Image.Image) -> np.ndarray:
         v = flat_pix[i]
         bin_header[i] = decode_bit(v)
     header = bin2msg(bin_header)
-    check, version, N = header.split("-")
+    check, _, N = header.split("-")
     assert check == "stegaplots"
     N = int(N)
     bin_msg = np.zeros(N, dtype=int)

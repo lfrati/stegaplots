@@ -42,14 +42,14 @@ class SteganoTests(unittest.TestCase):
         ax.set_ylabel("stonks")
         ax.legend()
         cls.img = to_pil(fig)  # to run tests
-        # fig.savefig("./assets/original.png")  # to compare
-        # savefig_metadata(
-        #     fig,
-        #     msg=cls.msg,
-        #     params=cls.params,
-        #     code=[__file__, "stegano.py"],
-        #     title="./assets/encoded",
-        # )
+        fig.savefig("./assets/original.png")  # to compare
+        savefig_metadata(
+            fig,
+            msg=cls.msg,
+            params=cls.params,
+            code=[__file__, "stegano.py"],
+            title="./assets/encoded",
+        )
         plt.close()
 
     def test_binmsg(self):
@@ -59,8 +59,8 @@ class SteganoTests(unittest.TestCase):
 
     def test_hideretrieve(self):
         bin_msg = msg2bin(SteganoTests.msg)
-        new_img, N = hide(SteganoTests.img, bin_msg)
-        retrieved = retrieve(new_img, N)
+        new_img = hide(SteganoTests.img, bin_msg)
+        retrieved = retrieve(new_img)
         self.assertTrue(np.array_equal(retrieved, bin_msg))
 
     def test_hide_too_big(self):
@@ -71,13 +71,13 @@ class SteganoTests(unittest.TestCase):
             _ = hide(SteganoTests.img, bin_msg)
 
     def test_encodedecode(self):
-        new_im, N = encode(SteganoTests.img, SteganoTests.msg)
-        retrieved_msg = decode(new_im, N)
+        new_im = encode(SteganoTests.img, SteganoTests.msg)
+        retrieved_msg = decode(new_im)
         self.assertEqual(retrieved_msg, SteganoTests.msg)
 
     def test_dict(self):
-        new_img, N = encode_dict(SteganoTests.img, SteganoTests.params)
-        new_params = decode_dict(new_img, N)
+        new_img = encode_dict(SteganoTests.img, SteganoTests.params)
+        new_params = decode_dict(new_img)
         target = json.dumps(self.params, sort_keys=True)
         retrieved = json.dumps(new_params, sort_keys=True)
         self.assertEqual(target, retrieved)

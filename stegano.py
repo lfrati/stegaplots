@@ -22,6 +22,10 @@ class bcolors:
     UNDERLINE = "\033[4m"
 
 
+HEADERLEN = 64
+HEADERSIZE = HEADERLEN * 8
+
+
 def to_pil(fig: Figure, dpi: int = 100) -> Image.Image:
     img_buf = io.BytesIO()
     fig.savefig(img_buf, format="png", dpi=dpi)
@@ -53,7 +57,11 @@ def decode_bit(v):
     return v % 2
 
 
-def hide(img: Image.Image, bin_msg: np.ndarray) -> tuple[Image.Image, int]:
+def hide(img: Image.Image, bin_msg: np.ndarray) -> Image.Image:
+    header = f"stegaplots-0.0.1-{len(bin_msg)}"
+    header = header + " " * (HEADERLEN - len(header))
+    bin_header = msg2bin(header)
+    bin_msg = np.concatenate([bin_header, bin_msg])
     pix = np.array(img)
     assert pix.size >= len(
         bin_msg
@@ -62,41 +70,49 @@ def hide(img: Image.Image, bin_msg: np.ndarray) -> tuple[Image.Image, int]:
     for i, desired in enumerate(bin_msg):
         v = flat_pix[i]
         flat_pix[i] = encode_bit(v, desired)
-    return Image.fromarray(pix), len(bin_msg)
+    return Image.fromarray(pix)
 
 
-def retrieve(img: Image.Image, N: int) -> np.ndarray:
+def retrieve(img: Image.Image) -> np.ndarray:
     pix = np.array(img)
     flat_pix = pix.ravel()
+    bin_header = np.zeros(HEADERSIZE, dtype=int)
+    for i in range(HEADERSIZE):
+        v = flat_pix[i]
+        bin_header[i] = decode_bit(v)
+    header = bin2msg(bin_header)
+    check, version, N = header.split("-")
+    assert check == "stegaplots"
+    N = int(N)
     bin_msg = np.zeros(N, dtype=int)
     for i in range(N):
-        v = flat_pix[i]
+        v = flat_pix[HEADERSIZE + i]
         bin_msg[i] = decode_bit(v)
     return bin_msg
 
 
-def encode(img: Image.Image, msg: str) -> tuple[Image.Image, int]:
+def encode(img: Image.Image, msg: str) -> Image.Image:
     compressed_bytes = zlib.compress(msg.encode())
     msg = base64.b64encode(compressed_bytes).decode("utf-8")
     bin_msg = msg2bin(msg)
     return hide(img, bin_msg)
 
 
-def decode(img: Image.Image, N: int) -> str:
-    bin_msg = retrieve(img, N)
+def decode(img: Image.Image) -> str:
+    bin_msg = retrieve(img)
     msg = bin2msg(bin_msg)
     compressed_bytes = base64.b64decode(msg)
     msg = zlib.decompress(compressed_bytes).decode("utf-8")
     return msg
 
 
-def encode_dict(img: Image.Image, d: dict) -> tuple[Image.Image, int]:
+def encode_dict(img: Image.Image, d: dict) -> Image.Image:
     msg = json.dumps(d, sort_keys=True)
     return encode(img, msg)
 
 
-def decode_dict(img: Image.Image, N: int) -> dict:
-    msg = decode(img, N)
+def decode_dict(img: Image.Image) -> dict:
+    msg = decode(img)
     d = json.loads(msg)
     return d
 
@@ -112,17 +128,13 @@ def savefig_metadata(
     if params is None:
         params = {}
     info = {"msg": msg, "params": params, "code": srcs}
-    new_img, N = encode_dict(img, info)
-    new_img.save(f"{title}-{N}.png")
+    new_img = encode_dict(img, info)
+    new_img.save(f"{title}.png")
 
 
 def retrieve_metadata(path: str) -> dict:
     img = Image.open(path)
-    N = int(Path(path).stem.split("-")[-1])
-    return decode_dict(img, N)
-
-
-# img = Image.open("./assets/encoded-21184.png")
+    return decode_dict(img)
 
 
 #%%

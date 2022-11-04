@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from stegano import (
-    bin2msg,
+    bin2str,
     decode,
     decode_bit,
     decode_dict,
@@ -13,10 +13,10 @@ from stegano import (
     encode_bit,
     encode_dict,
     hide,
-    msg2bin,
     retrieve,
-    to_pil,
     savefig_metadata,
+    str2bin,
+    to_pil,
 )
 
 
@@ -53,12 +53,12 @@ class SteganoTests(unittest.TestCase):
         plt.close()
 
     def test_binmsg(self):
-        bin_msg = msg2bin(SteganoTests.msg)
-        retrieved = bin2msg(bin_msg)
+        bin_msg = str2bin(SteganoTests.msg)
+        retrieved = bin2str(bin_msg)
         self.assertEqual(retrieved, SteganoTests.msg)
 
     def test_hideretrieve(self):
-        bin_msg = msg2bin(SteganoTests.msg)
+        bin_msg = str2bin(SteganoTests.msg)
         new_img = hide(SteganoTests.img, bin_msg)
         retrieved = retrieve(new_img)
         self.assertTrue(np.array_equal(retrieved, bin_msg))

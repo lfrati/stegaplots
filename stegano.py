@@ -34,7 +34,7 @@ def to_pil(fig: Figure, dpi: int = 100) -> Image.Image:
     return img
 
 
-def msg2bin(msg: str) -> np.ndarray:
+def str2bin(msg: str) -> np.ndarray:
     bits = [f"{ord(i):08b}" for i in msg]
     return np.array([int(el) for seq in bits for el in seq], dtype=int)
 
@@ -42,7 +42,7 @@ def msg2bin(msg: str) -> np.ndarray:
 BASE = 2 ** np.arange(8)[np.newaxis, ::-1]
 
 
-def bin2msg(bits: np.ndarray) -> str:
+def bin2str(bits: np.ndarray) -> str:
     _bytes = bits.reshape(-1, 8)
     ints = np.sum(_bytes * BASE, axis=1)
     msg = "".join([chr(v) for v in ints])
@@ -57,6 +57,9 @@ def encode_bit(v, desired):
     return v
 
 
+vencode_bit = np.vectorize(encode_bit)
+
+
 def decode_bit(v):
     return v % 2
 
@@ -64,16 +67,14 @@ def decode_bit(v):
 def hide(img: Image.Image, bin_msg: np.ndarray) -> Image.Image:
     header = f"stegaplots-{VERSION}-{len(bin_msg)}"
     header = header + " " * (HEADERLEN - len(header))
-    bin_header = msg2bin(header)
+    bin_header = str2bin(header)
     bin_msg = np.concatenate([bin_header, bin_msg])
     pix = np.array(img)
     assert pix.size >= len(
         bin_msg
     ), f"Image size insufficient: {pix.shape} = {pix.size} bits < {len(bin_msg)} required"
     flat_pix = pix.ravel()
-    for i, desired in enumerate(bin_msg):
-        v = flat_pix[i]
-        flat_pix[i] = encode_bit(v, desired)
+    flat_pix[: len(bin_msg)] = vencode_bit(flat_pix[: len(bin_msg)], bin_msg)
     return Image.fromarray(pix)
 
 
@@ -84,27 +85,24 @@ def retrieve(img: Image.Image) -> np.ndarray:
     for i in range(HEADERSIZE):
         v = flat_pix[i]
         bin_header[i] = decode_bit(v)
-    header = bin2msg(bin_header)
+    header = bin2str(bin_header)
     check, _, N = header.split("-")
     assert check == "stegaplots"
     N = int(N)
-    bin_msg = np.zeros(N, dtype=int)
-    for i in range(N):
-        v = flat_pix[HEADERSIZE + i]
-        bin_msg[i] = decode_bit(v)
+    bin_msg = flat_pix[HEADERSIZE : HEADERSIZE + N] % 2
     return bin_msg
 
 
 def encode(img: Image.Image, msg: str) -> Image.Image:
     compressed_bytes = zlib.compress(msg.encode())
     msg = base64.b64encode(compressed_bytes).decode("utf-8")
-    bin_msg = msg2bin(msg)
+    bin_msg = str2bin(msg)
     return hide(img, bin_msg)
 
 
 def decode(img: Image.Image) -> str:
     bin_msg = retrieve(img)
-    msg = bin2msg(bin_msg)
+    msg = bin2str(bin_msg)
     compressed_bytes = base64.b64decode(msg)
     msg = zlib.decompress(compressed_bytes).decode("utf-8")
     return msg

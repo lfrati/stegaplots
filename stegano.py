@@ -87,67 +87,80 @@ def vencode_bit(v, desired):
     return v
 
 
-def decode_bit(v):
-    return v % 2
-
-
-def hide(img: Image.Image, bin_msg: np.ndarray) -> Image.Image:
-    header = f"stegaplots-{VERSION}-{len(bin_msg)}"
-    header = header + " " * (HEADERLEN - len(header))
-    bin_header = str2bin(header)
-    bin_msg = np.concatenate([bin_header, bin_msg])
-    pix = np.array(img)
-    assert pix.size >= len(
-        bin_msg
-    ), f"Image size insufficient: {pix.shape} = {pix.size} bits < {len(bin_msg)} required"
-    flat_pix = pix.ravel()
-    flat_pix[: len(bin_msg)] = vencode_bit(flat_pix[: len(bin_msg)], bin_msg)
-    return Image.fromarray(pix)
-
-
-def retrieve(img: Image.Image) -> np.ndarray:
-    pix = np.array(img)
-    flat_pix = pix.ravel()
-    bin_header = np.zeros(HEADERSIZE, dtype=int)
-    for i in range(HEADERSIZE):
-        v = flat_pix[i]
-        bin_header[i] = decode_bit(v)
-    header = bin2str(bin_header)
-    check, _, N = header.split("-")
-    assert check == "stegaplots"
-    N = int(N)
-    bin_msg = flat_pix[HEADERSIZE : HEADERSIZE + N] % 2
-    return bin_msg
-
-
-def encode(img: Image.Image, msg: str) -> Image.Image:
-    compressed_bytes = zlib.compress(msg.encode())
+def compress(decompressed: str) -> str:
+    decompressed_bytes = decompressed.encode()
+    compressed_bytes = zlib.compress(decompressed_bytes)
     msg = base64.b64encode(compressed_bytes).decode("utf-8")
-    bin_msg = str2bin(msg)
-    return hide(img, bin_msg)
+    return msg
 
 
-def decode(img: Image.Image) -> str:
-    bin_msg = retrieve(img)
-    msg = bin2str(bin_msg)
-    compressed_bytes = base64.b64decode(msg)
+def decompress(compressed: str) -> str:
+    compressed_bytes = base64.b64decode(compressed)
     msg = zlib.decompress(compressed_bytes).decode("utf-8")
     return msg
 
 
-def encode_dict(img: Image.Image, d: dict) -> Image.Image:
-    msg = json.dumps(d, sort_keys=True)
-    return encode(img, msg)
+def dict2str(d: dict) -> str:
+    return json.dumps(d, sort_keys=True)
 
 
-def decode_dict(img: Image.Image) -> dict:
-    msg = decode(img)
-    d = json.loads(msg)
-    return d
+def str2dict(s: str) -> dict:
+    return json.loads(s)
+
+
+def insert(img: Image.Image, params: dict, code: dict) -> Image.Image:
+
+    params_str = dict2str(params)
+
+    code_str = dict2str(code)
+    code_str = compress(code_str)
+
+    header_str = f"stegaplots-{VERSION}-{len(params_str)*8}-{len(code_str)*8}"
+    header_str = header_str + " " * (HEADERLEN - len(header_str))
+
+    bin_msg = str2bin("".join([header_str, params_str, code_str]))
+
+    pix = np.array(img)
+    required = len(bin_msg)
+    assert (
+        pix.size >= required
+    ), f"Image size insufficient: {pix.shape} = {pix.size} bits < {len(bin_msg)} required"
+
+    flat_pix = pix.ravel()
+    flat_pix[: len(bin_msg)] = vencode_bit(flat_pix[: len(bin_msg)], bin_msg)
+
+    new_img = Image.fromarray(pix)
+    return new_img
+
+
+def extract(img: Image.Image, params_only: bool = False) -> tuple[str, str]:
+    pix = np.array(img)
+    flat_pix = pix.ravel()
+    bits = flat_pix[:HEADERSIZE] % 2
+    header = bin2str(bits)
+    check, _, params_n, code_n = header.split("-")
+    assert check == "stegaplots"
+    params_n = int(params_n)
+    code_n = int(code_n)
+
+    params_start = HEADERSIZE
+    params_end = HEADERSIZE + params_n
+    params_bits = flat_pix[params_start:params_end] % 2
+    params_str = bin2str(params_bits)
+    if params_only:
+        return params_str, ""
+
+    code_start = params_end
+    code_end = code_start + code_n
+    code_bits = flat_pix[code_start:code_end] % 2
+    code_compress = bin2str(code_bits)
+    code_str = decompress(code_compress)
+
+    return params_str, code_str
 
 
 def savefig_metadata(
-    fig: Figure, msg: str, params: dict, code: list[str], title: str, dpi: int = 100
+    fig: Figure, params: dict, code: list[str], title: str, dpi: int = 100
 ) -> None:
     img = to_pil(fig, dpi=dpi)
     if code is None:
@@ -156,14 +169,14 @@ def savefig_metadata(
         srcs = {file: Path(file).read_text() for file in code}
     if params is None:
         params = {}
-    info = {"msg": msg, "params": params, "code": srcs}
-    new_img = encode_dict(img, info)
+    new_img = insert(img, params=params, code=srcs)
     new_img.save(f"{title}.png")
 
 
-def retrieve_metadata(path: str) -> dict:
+def retrieve_metadata(path: str, params_only=False) -> dict:
     img = Image.open(path)
-    return decode_dict(img)
+    params, code = extract(img, params_only=params_only)
+    return {"params": str2dict(params), "code": str2dict(code)}
 
 
 #%%
@@ -174,12 +187,13 @@ if __name__ == "__main__":
     parser.add_argument("input", type=str, help="Path to image to decode")
     args = parser.parse_args()
     info = retrieve_metadata(args.input)
+
+    print(
+        f"{bcolors.FAIL}code: {bcolors.ENDC}",
+    )
     for name, src in info["code"].items():
         print(
-            f"{bcolors.FAIL}>>> {name} <<<{bcolors.ENDC}",
+            f"{bcolors.FAIL}  {name}{bcolors.ENDC}",
         )
-        print(src)
-    print(bcolors.OKBLUE + "msg:", info["msg"])
-    print(bcolors.ENDC)
-    print(bcolors.WARNING + "params:", json.dumps(info["params"]))
+    print(bcolors.WARNING + "params:\n  ", json.dumps(info["params"]))
     print(bcolors.ENDC)

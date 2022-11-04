@@ -7,6 +7,8 @@ import zlib
 
 from PIL import Image
 from matplotlib.figure import Figure
+import numba
+from numba import types
 import numpy as np
 
 
@@ -34,9 +36,36 @@ def to_pil(fig: Figure, dpi: int = 100) -> Image.Image:
     return img
 
 
+@numba.njit
+def to_bits(n: int, N: int) -> np.ndarray:
+    """
+    Convert integer n to binary array of length N
+    e.g.
+        to_bits(13,8) -> array([0, 0, 0, 0, 1, 1, 0, 1], dtype=uint8)
+
+    Note: much faster than the weird python string manipulation version.
+    """
+    bits = np.zeros(N, dtype=np.uint8)
+    for i in range(N):
+        v = n % 2
+        bits[i] = v
+        n = n // 2
+    return bits[::-1]
+
+
+bytes_type = types.Bytes(types.u1, 1, "C", readonly=True)
+
+
+@numba.njit(types.u1[:](bytes_type), cache=True)
+def bytes2bin(s: bytes) -> np.ndarray:
+    arr = np.zeros((len(s), 8), dtype=np.uint8)
+    for i in range(arr.shape[0]):
+        arr[i] = to_bits(s[i], 8)
+    return arr.ravel()
+
+
 def str2bin(msg: str) -> np.ndarray:
-    bits = [f"{ord(i):08b}" for i in msg]
-    return np.array([int(el) for seq in bits for el in seq], dtype=int)
+    return bytes2bin(msg.encode())
 
 
 BASE = 2 ** np.arange(8)[np.newaxis, ::-1]
@@ -49,15 +78,13 @@ def bin2str(bits: np.ndarray) -> str:
     return msg
 
 
-def encode_bit(v, desired):
+@numba.vectorize([types.u1(types.u1, types.u1)])
+def vencode_bit(v, desired):
     if v % 2 != desired:
         if v < 255:
             return v + 1
         return v - 1
     return v
-
-
-vencode_bit = np.vectorize(encode_bit)
 
 
 def decode_bit(v):

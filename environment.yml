@@ -4,3 +4,4 @@ channels:
 dependencies:
   - matplotlib=3.5.2
   - numpy=1.23.3
+  - numba=0.55.1

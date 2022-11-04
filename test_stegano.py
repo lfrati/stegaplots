@@ -7,10 +7,8 @@ import numpy as np
 from stegano import (
     bin2str,
     decode,
-    decode_bit,
     decode_dict,
     encode,
-    encode_bit,
     encode_dict,
     hide,
     retrieve,
@@ -81,11 +79,6 @@ class SteganoTests(unittest.TestCase):
         target = json.dumps(self.params, sort_keys=True)
         retrieved = json.dumps(new_params, sort_keys=True)
         self.assertEqual(target, retrieved)
-
-    def test_encode_decode_bit(self):
-        for v in range(256):
-            for desired in [0, 1]:
-                self.assertEqual(decode_bit(encode_bit(v, desired)), desired)
 
 
 if __name__ == "__main__":

@@ -35,14 +35,17 @@ def to_pil(fig: Figure, dpi: int = 100) -> Image.Image:
 
 
 def msg2bin(msg: str) -> np.ndarray:
-    bits = "".join(f"{ord(i):08b}" for i in msg)
-    return np.array([int(el) for el in bits], dtype=int)
+    bits = [f"{ord(i):08b}" for i in msg]
+    return np.array([int(el) for seq in bits for el in seq], dtype=int)
 
 
-def bin2msg(bin_msg: np.ndarray) -> str:
-    msg_bytes = bin_msg.reshape(-1, 8)
-    nums = [int("".join(str(el) for el in row), 2) for row in msg_bytes]
-    msg = "".join(map(chr, nums))
+BASE = 2 ** np.arange(8)[np.newaxis, ::-1]
+
+
+def bin2msg(bits: np.ndarray) -> str:
+    _bytes = bits.reshape(-1, 8)
+    ints = np.sum(_bytes * BASE, axis=1)
+    msg = "".join([chr(v) for v in ints])
     return msg
 
 

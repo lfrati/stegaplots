@@ -13,6 +13,7 @@ What if you would like to store the script itself along with that image?
 
 Why not use [steganography](https://en.wikipedia.org/wiki/Steganography) to store all the data you want *INSIDE* the plot?
 
+That way you can share pictures along with parameters AND THE CODE needed to re-create them, all in one file. No more broken links or lost sources.
 
 # Example
 ## Step 1: make plot + store data
@@ -37,7 +38,6 @@ ax.set_ylabel("stonks")
 ax.legend()
 savefig_metadata( # save the metadata IN the figure
     fig,
-    msg="Small but important note",
     params=params,
     code=[__file__, "stegano.py"],
     title="./assets/encoded",
@@ -53,35 +53,29 @@ Original                   |  Original + Data
 ## Step 2: retrieve parameters
 ```python
 # retrieve information
-retrieve_metadata("./assets/encoded.png")
-> {
->   "code" : {"stegano.py" : "import argparse
->                             import base64
->                             ... 
->             },
->    "msg" : "Small but important note.",
-> "params" : {"n": 500, "seed": 4, "sig": 1000}
-> }
+> retrieve_metadata("./assets/encoded.png")
+{
+  "code" : {"stegano.py" : "import argparse
+                            import base64
+                            ... 
+            },
+"params" : {"n": 500, "seed": 4, "sig": 1000}
+}
 ```
 
 If you just want to check an image you can use:
 
 ```bash
-$ python stegano.py assets/encoded.png
-# >>> stegano.py <<<
-# import argparse
-# import base64
-# import io
-# ...
-# 
-# msg: Small but important note.
-# 
-# params: {"n": 500, "seed": 4, "sig": 1000}
-# 
+$ stega assets/encoded.png
+code:
+  .../git/stegaplots/test_stegano.py
+  stegano.py
+params:
+   {"n": 500, "seed": 4, "sig": 1000}
 ```
 
 # How does it work?
-Let's say you want to store "Hello world!" in your plot.
+Let's say you want to store "Hello world!" in your plot. (Note: the example is actual code from an earlier version, now things are a bit more optimized but less readable.)
 ## 1. plot to image
 ```python
 fig, ax = plt.subplots()
@@ -132,3 +126,10 @@ To find out that we used a fixed size header:
 "stegaplots-0.0.1-25664                                           " = 64 chars 
    check    ver.  size  (a lot of spaces but too much > too little)
 ```
+
+# Todo
+- [ ] Extract sources and params to a folder for easy reproducibility.
+- [ ] Search within a folder of images for specific parameters.
+  - [x] Separate code and params in the header for fast search.
+  - [ ] Make fuzzy search interface.
+- [ ] Hash generating code for easy grouping of multiple copies of a same run setup. 

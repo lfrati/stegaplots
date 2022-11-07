@@ -48,7 +48,7 @@ A small (640,480,4) plot provides 1228800 bits of storage which is 153600 charac
 For example, ```stegano.py``` is 3738 chars so we can store up to 40 copies of it!
 Original                   |  Original + Data
 :-------------------------:|:-------------------------:
-![](assets/original.png)   |  ![](assets/encoded.png)
+![](https://raw.githubusercontent.com/lfrati/stegaplots/main/assets/original.png)   |  ![](https://raw.githubusercontent.com/lfrati/stegaplots/main/assets/encoded.png)
 
 ## Step 2: retrieve parameters
 ```python

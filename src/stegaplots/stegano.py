@@ -1,6 +1,7 @@
 import base64
 import io
 import json
+import os
 from pathlib import Path
 import zlib
 
@@ -147,7 +148,7 @@ def extract(img: Image.Image, params_only: bool = False) -> tuple[str, str]:
 
 
 def savefig_metadata(
-    fig: Figure, params: dict, code: list[str], title: str, dpi: int = 100
+    fig: Figure, params: dict, code: list[str], path: str, dpi: int = 100
 ) -> None:
     img = to_pil(fig, dpi=dpi)
     if code is None:
@@ -157,7 +158,8 @@ def savefig_metadata(
     if params is None:
         params = {}
     new_img = insert(img, params=params, code=srcs)
-    new_img.save(f"{title}.png")
+    path = os.path.splitext(path)[0] + ".png"  # ensure extension is .png
+    new_img.save(path)
 
 
 def retrieve_metadata(path: str, params_only=False) -> dict:

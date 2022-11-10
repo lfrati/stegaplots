@@ -12,8 +12,13 @@ Yeah, you could put the parameters in the name... but what if you have a lot of 
 What if you would like to store the script itself along with that image?
 
 Why not use [steganography](https://en.wikipedia.org/wiki/Steganography) to store all the data you want *INSIDE* the plot?
-
 That way you can share pictures along with parameters AND THE CODE needed to re-create them, all in one file. No more broken links or lost sources.
+
+# Usage
+There are only 2 key functions needed to use stegaplots:
+- `from stegaplots import savefig_metadata` : python function that can take a matplotlib, some metadata and store it into a png
+- `stega` : command-line utility to extract information from a single plot or folder of plots.
+Let's see how they work with an example.
 
 # Example
 ## Step 1: make plot + store data
@@ -40,7 +45,7 @@ savefig_metadata( # save the metadata IN the figure
     fig,
     params=params,
     code=[__file__, "stegano.py"],
-    title="./assets/encoded",
+    path="./assets/encoded",
 )
 plt.close()
 ```
@@ -50,7 +55,7 @@ Original                   |  Original + Data
 :-------------------------:|:-------------------------:
 ![](https://raw.githubusercontent.com/lfrati/stegaplots/main/assets/original.png)   |  ![](https://raw.githubusercontent.com/lfrati/stegaplots/main/assets/encoded.png)
 
-## Step 2: retrieve parameters
+## Step 2: retrieve parameters inside python script
 ```python
 # retrieve information
 > retrieve_metadata("./assets/encoded.png")
@@ -63,15 +68,51 @@ Original                   |  Original + Data
 }
 ```
 
-If you just want to check an image you can use:
+If you just want access the stored information from the command line you can use:
 
 ```bash
 $ stega assets/encoded.png
+Received: Image
+Contents:
 code:
-  .../git/stegaplots/test_stegano.py
-  stegano.py
+  /Users/lfrati/git/stegaplots/tests/test_stegano.py
 params:
    {"n": 500, "seed": 4, "sig": 1000}
+```
+to extract the parameters and code stored inside a PNG use the -e/--extract flag:
+```bash
+$ stega --extract assets/encoded.png
+Received: Image
+Contents:
+code:
+  /Users/lfrati/git/stegaplots/tests/test_stegano.py
+params:
+   {"n": 500, "seed": 4, "sig": 1000}
+
+Contents stored in stega_encoded
+```
+which creates a folder called `stega_PNGNAME` containing parameters as a json and all the source code retrieved
+```bash
+$ ls stega_encoded
+params.json     test_stegano.py
+```
+
+To get all the params from a folder of PNGs you can just call stega + FOLDER, for example let's say plots is a folder with 257 pngs (256 steganoplots + 1 intruder) then
+```bash
+$ stega plots
+Received: Folder
+100%|██████████████████████████████████████████████████████████████| 257/257 [00:02<00:00, 94.12it/s]
+Elapsed 2.7405527920000003
+Information written to stega_plots.txt
+```
+creates the file stega_plots.txt (i.e. stega_FOLDERNAME.txt) containing all names + params of all the stegaplots found
+```txt
+plots/experiment_1.png	{"n": 26, "seed": 0, "sig": 0.5068821806592602}
+plots/experiment_2.png	{"n": 0, "seed": 1, "sig": 0.7523980618676751}
+...
+plots/experiment_v2_127.png	{"alpha": 0.28566677791877404, "elite": false, "pop": 57, "seeds": [126, 252]}
+plots/experiment_v2_128.png	{"alpha": 0.023371892268937544, "elite": false, "pop": 86, "seeds": [127, 254]}
+
 ```
 
 # How does it work?

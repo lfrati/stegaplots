@@ -80,7 +80,6 @@ params:
    {"n": 500, "seed": 4, "sig": 1000}
 ```
 to extract the parameters and code stored inside a PNG use the -e/--extract flag:
-(contents are stored in a folder called `stega_<PNG name>`)
 ```bash
 $ stega --extract assets/encoded.png
 Received: Image
@@ -90,17 +89,30 @@ code:
 params:
    {"n": 500, "seed": 4, "sig": 1000}
 
-Contents stored in stega_encoded  <-- 
+Contents stored in stega_encoded
 ```
+which creates a folder called `stega_PNGNAME` containing parameters as a json and all the source code retrieved
 ```bash
-$ stega plots <- fold
+$ ls stega_encoded
+params.json     test_stegano.py
+```
+
+To get all the params from a folder of PNGs you can just call stega + FOLDER, for example let's say plots is a folder with 257 pngs (256 steganoplots + 1 intruder) then
+```bash
+$ stega plots
 Received: Folder
 100%|██████████████████████████████████████████████████████████████| 257/257 [00:02<00:00, 94.12it/s]
 Elapsed 2.7405527920000003
 Information written to stega_plots.txt
 ```
-
-
+creates the file stega_plots.txt (i.e. stega_FOLDERNAME.txt) containing all names + params of all the stegaplots found
+```txt
+plots/experiment_1.png	{"n": 26, "seed": 0, "sig": 0.5068821806592602}
+plots/experiment_2.png	{"n": 0, "seed": 1, "sig": 0.7523980618676751}
+...
+plots/experiment_v2_127.png	{"alpha": 0.28566677791877404, "elite": false, "pop": 57, "seeds": [126, 252]}
+plots/experiment_v2_128.png	{"alpha": 0.023371892268937544, "elite": false, "pop": 86, "seeds": [127, 254]}
+```
 
 # How does it work?
 Let's say you want to store "Hello world!" in your plot.

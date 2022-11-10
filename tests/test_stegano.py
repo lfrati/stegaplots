@@ -1,4 +1,3 @@
-import json
 import pytest
 
 import matplotlib.pyplot as plt
@@ -33,8 +32,8 @@ def get_test_data(save=False):
         savefig_metadata(
             fig,
             params=params,
-            code=[__file__, "stegano.py"],
-            title="./assets/encoded",
+            code=[__file__],
+            path="./assets/encoded",
         )
     plt.close()
     return {
@@ -47,7 +46,7 @@ def get_test_data(save=False):
 
 @pytest.fixture(scope="session")
 def data():
-    return get_test_data(save=False)
+    return get_test_data(save=True)
 
 
 def test_bin(data):

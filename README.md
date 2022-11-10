@@ -12,6 +12,7 @@ Yeah, you could put the parameters in the name... but what if you have a lot of 
 What if you would like to store the script itself along with that image?
 
 Why not use [steganography](https://en.wikipedia.org/wiki/Steganography) to store all the data you want *INSIDE* the plot?
+That way you can share pictures along with parameters AND THE CODE needed to re-create them, all in one file. No more broken links or lost sources.
 
 # Usage
 There are only 2 key functions needed to use stegaplots:
@@ -57,15 +58,14 @@ Original                   |  Original + Data
 ## Step 2: retrieve parameters inside python script
 ```python
 # retrieve information
-retrieve_metadata("./assets/encoded.png")
-> {
->   "code" : {"stegano.py" : "import argparse
->                             import base64
->                             ... 
->             },
->    "msg" : "Small but important note.",
-> "params" : {"n": 500, "seed": 4, "sig": 1000}
-> }
+> retrieve_metadata("./assets/encoded.png")
+{
+  "code" : {"stegano.py" : "import argparse
+                            import base64
+                            ... 
+            },
+"params" : {"n": 500, "seed": 4, "sig": 1000}
+}
 ```
 
 If you just want access the stored information from the command line you can use:
@@ -112,10 +112,11 @@ plots/experiment_2.png	{"n": 0, "seed": 1, "sig": 0.7523980618676751}
 ...
 plots/experiment_v2_127.png	{"alpha": 0.28566677791877404, "elite": false, "pop": 57, "seeds": [126, 252]}
 plots/experiment_v2_128.png	{"alpha": 0.023371892268937544, "elite": false, "pop": 86, "seeds": [127, 254]}
+
 ```
 
 # How does it work?
-Let's say you want to store "Hello world!" in your plot.
+Let's say you want to store "Hello world!" in your plot. (Note: the example is actual code from an earlier version, now things are a bit more optimized but less readable.)
 ## 1. plot to image
 ```python
 fig, ax = plt.subplots()
@@ -166,3 +167,10 @@ To find out that we used a fixed size header:
 "stegaplots-0.0.1-25664                                           " = 64 chars 
    check    ver.  size  (a lot of spaces but too much > too little)
 ```
+
+# Todo
+- [ ] Extract sources and params to a folder for easy reproducibility.
+- [ ] Search within a folder of images for specific parameters.
+  - [x] Separate code and params in the header for fast search.
+  - [ ] Make fuzzy search interface.
+- [ ] Hash generating code for easy grouping of multiple copies of a same run setup. 

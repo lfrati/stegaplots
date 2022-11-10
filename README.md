@@ -13,6 +13,11 @@ What if you would like to store the script itself along with that image?
 
 Why not use [steganography](https://en.wikipedia.org/wiki/Steganography) to store all the data you want *INSIDE* the plot?
 
+# Usage
+There are only 2 key functions needed to use stegaplots:
+- `from stegaplots import savefig_metadata` : python function that can take a matplotlib, some metadata and store it into a png
+- `stega` : command-line utility to extract information from a single plot or folder of plots.
+Let's see how they work with an example.
 
 # Example
 ## Step 1: make plot + store data
@@ -37,10 +42,9 @@ ax.set_ylabel("stonks")
 ax.legend()
 savefig_metadata( # save the metadata IN the figure
     fig,
-    msg="Small but important note",
     params=params,
     code=[__file__, "stegano.py"],
-    title="./assets/encoded",
+    path="./assets/encoded",
 )
 plt.close()
 ```
@@ -50,7 +54,7 @@ Original                   |  Original + Data
 :-------------------------:|:-------------------------:
 ![](https://raw.githubusercontent.com/lfrati/stegaplots/main/assets/original.png)   |  ![](https://raw.githubusercontent.com/lfrati/stegaplots/main/assets/encoded.png)
 
-## Step 2: retrieve parameters
+## Step 2: retrieve parameters inside python script
 ```python
 # retrieve information
 retrieve_metadata("./assets/encoded.png")
@@ -64,21 +68,39 @@ retrieve_metadata("./assets/encoded.png")
 > }
 ```
 
-If you just want to check an image you can use:
+If you just want access the stored information from the command line you can use:
 
 ```bash
-$ python stegano.py assets/encoded.png
-# >>> stegano.py <<<
-# import argparse
-# import base64
-# import io
-# ...
-# 
-# msg: Small but important note.
-# 
-# params: {"n": 500, "seed": 4, "sig": 1000}
-# 
+$ stega assets/encoded.png
+Received: Image
+Contents:
+code:
+  /Users/lfrati/git/stegaplots/tests/test_stegano.py
+params:
+   {"n": 500, "seed": 4, "sig": 1000}
 ```
+to extract the parameters and code stored inside a PNG use the -e/--extract flag:
+(contents are stored in a folder called `stega_<PNG name>`)
+```bash
+$ stega --extract assets/encoded.png
+Received: Image
+Contents:
+code:
+  /Users/lfrati/git/stegaplots/tests/test_stegano.py
+params:
+   {"n": 500, "seed": 4, "sig": 1000}
+
+Contents stored in stega_encoded  <-- 
+```
+```bash
+$ stega plots <- fold
+Received: Folder
+100%|██████████████████████████████████████████████████████████████| 257/257 [00:02<00:00, 94.12it/s]
+Elapsed 2.7405527920000003
+Information written to stega_plots.txt
+```
+
+
 
 # How does it work?
 Let's say you want to store "Hello world!" in your plot.

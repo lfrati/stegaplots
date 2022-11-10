@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 keywords = ["steganography","matplotlib"]
-dependencies = ["matplotlib", "numpy", "numba"]
+dependencies = ["matplotlib", "numpy", "numba", "tqdm"]
 requires-python = ">=3.9"
 
     [project.scripts]

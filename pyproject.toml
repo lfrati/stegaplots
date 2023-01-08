@@ -26,11 +26,6 @@ requires-python = ">=3.9"
     [project.urls]
     Homepage = "https://github.com/lfrati/stegaplots"
 
-[tool.pytest.ini_options]
-pythonpath = [
-  "src"
-]
-
 [tool.bumpver]
 current_version = "0.2.1"
 version_pattern = "MAJOR.MINOR.PATCH"

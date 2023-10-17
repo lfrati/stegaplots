@@ -14,10 +14,14 @@ What if you would like to store the script itself along with that image?
 Why not use [steganography](https://en.wikipedia.org/wiki/Steganography) to store all the data you want *INSIDE* the plot?
 That way you can share pictures along with parameters AND THE CODE needed to re-create them, all in one file. No more broken links or lost sources.
 
+# Installation
+Simply run: `pip install stegaplots`
+
 # Usage
 There are only 2 key functions needed to use stegaplots:
 - `from stegaplots import savefig_metadata` : python function that can take a matplotlib, some metadata and store it into a png
 - `stega` : command-line utility to extract information from a single plot or folder of plots.
+
 Let's see how they work with an example.
 
 # Example
